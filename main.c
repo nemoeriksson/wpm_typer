@@ -7,13 +7,15 @@
 
 #define MAX_WORD_COUNT 3000
 #define MAX_WORD_LENGHT 20
-#define MAX_WORD_STACK_SIZE 100
+#define MAX_WORD_STACK_SIZE 200
 
 typedef struct word{
     char *content;
     struct word *next;
 } word;
 
+char *remove_newline(char *original);
+char *get_following_word(word *head, int offset);
 int check_correct(char *user_input, char *word);
 word *generate_words(char **words, int word_count);
 int validate_arguments(int argc, char **argv);
@@ -52,9 +54,15 @@ int main(int argc, char **argv){
     while(total_words < word_goal && total_words < MAX_WORD_STACK_SIZE){
         word_start_time = time(NULL);
         clear();
-        printf("\e[1;2m===== %3d / %3d words | %3.1fs | %2d failed =====\n\e[0;1m %s\e[0m>", 
-            total_words, word_goal, total_playtime, failed_words, head->content);
+        printf("\e[1;2m===== %3d / %3d words | %3.1fs | %2d failed =====\n", 
+            total_words, word_goal, total_playtime, failed_words);
 
+        printf("\e[0;1m %s \e[2m%s %s\e[0m\n", 
+            remove_newline(head->content), 
+            word_goal-total_words > 1 ? remove_newline(get_following_word(head, 1)) : "", 
+            word_goal-total_words > 2 ? remove_newline(get_following_word(head, 2)) : "");
+
+        printf(">");
         scanf("%s", word_buffer);
 
         elapsed_time = time(NULL) - word_start_time;
@@ -77,6 +85,31 @@ int main(int argc, char **argv){
     printf("\e[0m\n");
 
     return 0;
+}
+
+char *remove_newline(char *original){
+    char *result = malloc(sizeof(char) * MAX_WORD_LENGHT);
+
+    for (int i = 0; i < strlen(original); i++){
+        if (original[i] == '\n'){
+            result[i] = '\0';
+            break;
+        }
+        result[i] = original[i];
+    }
+
+    return result;
+}
+
+char *get_following_word(word *head, int offset){
+    for(int i = 0; i < offset; i++){
+        if(!head->next){
+            return "";
+        }
+        head = head->next;
+    }
+
+    return head->content;
 }
 
 int check_correct(char *user_input, char *word){
